@@ -20,49 +20,17 @@ int frame_len;
 volatile uint8_t uart_rcv_buf[UART_RCV_BUF_SIZE];
 volatile uint8_t *uart_rcv_buf_head = uart_rcv_buf;
 
-void init_not_so_soft_uart()
-{
-	// Set RX pin change interrupt (interrupt on both edges)
-	gpio_enable(UART_RCV_PIN, GPIO_INPUT);
-	gpio_set_interrupt(UART_RCV_PIN, GPIO_INTTYPE_EDGE_ANY, handle_pin_change);
-
-	// Set timer interrupt which will count bits received
-	TIMER_FRC1.CTRL = VAL2FIELD(TIMER_CTRL_CLKDIV, TIMER_CLKDIV_1) | TIMER_CTRL_RELOAD;
-	TIMER_FRC1.LOAD = TIMER_FRC1_MAX_LOAD;
-}
+extern void start_timer();
+extern void stop_timer();
+extern void reset_timer();
+extern int get_uart_pin_state();
+extern int get_num_bytes_rcvd();
+extern void init_not_so_soft_uart();
 
 inline void push_byte(uint8_t byte, uint8_t *buf_head)
 {
     //*buf_head++ = byte;
 	printf("%c", byte);
-}
-
-void start_timer()
-{
-	TIMER_FRC1.CTRL |= TIMER_CTRL_RUN;
-}
-
-void stop_timer()
-{
-	TIMER_FRC1.CTRL &= ~(TIMER_CTRL_RUN);
-}
-
-void reset_timer()
-{
-	start_timer();
-	TIMER_FRC1.LOAD = TIMER_FRC1_MAX_LOAD;
-	stop_timer();
-}
-
-int get_num_bytes_rcvd()
-{
-	int tim_past = TIMER_FRC1.LOAD - TIMER_FRC1.COUNT;
-    return (tim_past + 0.5) / BIT_DUR_IN_TIMER_TICKS ;
-}
-
-int get_uart_pin_state()
-{
-    return gpio_read(UART_RCV_PIN);
 }
 
 static void handle_pin_change(uint8_t pin)
