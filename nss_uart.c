@@ -1,3 +1,4 @@
+#include "nss_uart.h"
 #include <stdio.h>
 #include <inttypes.h>
 
@@ -5,12 +6,12 @@
 
 #define UART_RCV_BUF_SIZE               256
 
-int frame_len = 8;
+const int frame_len = 8;
 
-volatile uint8_t uart_rcv_buf[UART_RCV_BUF_SIZE];
-volatile unsigned int uart_rcv_buf_head, uart_rcv_buf_tail;
+static volatile uint8_t uart_rcv_buf[UART_RCV_BUF_SIZE];
+static volatile unsigned int uart_rcv_buf_head, uart_rcv_buf_tail;
 
-volatile unsigned int nssu_bytes_rcvd;
+volatile unsigned int nssu_bytes_rcvd = 0;
 
 extern void init_not_so_soft_uart();
 extern void start_nssu_timer();
@@ -24,7 +25,6 @@ static inline void push_byte_to_circ_buf(uint8_t val, volatile uint8_t *buf, vol
 {
 	buf[*buf_head] = val;
 	*buf_head = (*buf_head + 1) % buf_size;
-	printf("%c", val);
 }
 
 void handle_nssu_pin_change()
