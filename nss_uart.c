@@ -1,39 +1,33 @@
 #include <stdio.h>
 #include <inttypes.h>
-#include "esp8266.h"
-#include "espressif/esp_common.h"
 
 #define set_bits(byte, num, pos)		byte |= ( ( 1 << num ) - 1 ) << pos
 
 #define UART_RCV_BUF_SIZE               256
 
-#define UART_RCV_PIN		5
-
-#define TIMER_FREQ			40000000
-#define BAUD_RATE			9600.
-#define BITS_PER_BAUD		10.
-#define BIT_DUR_IN_TIMER_TICKS ( TIMER_FREQ ) / ( BAUD_RATE ) / ( BITS_PER_BAUD )
-
-static void handle_pin_change(uint8_t pin);
-int frame_len;
+int frame_len = 8;
 
 volatile uint8_t uart_rcv_buf[UART_RCV_BUF_SIZE];
-volatile uint8_t *uart_rcv_buf_head = uart_rcv_buf;
+volatile unsigned int uart_rcv_buf_head, uart_rcv_buf_tail;
 
-extern void start_timer();
-extern void stop_timer();
-extern void reset_timer();
-extern int get_uart_pin_state();
-extern int get_num_bytes_rcvd();
+volatile unsigned int nssu_bytes_rcvd;
+
 extern void init_not_so_soft_uart();
+extern void start_nssu_timer();
+extern void stop_nssu_timer();
+extern void reset_nssu_timer();
+extern int get_nssu_pin_state();
+extern int get_nssu_bytes_rcvd();
 
-inline void push_byte(uint8_t byte, uint8_t *buf_head)
+static inline void push_byte_to_circ_buf(uint8_t val, volatile uint8_t *buf, volatile unsigned int *buf_head, 
+		size_t buf_size)
 {
-    //*buf_head++ = byte;
-	printf("%c", byte);
+	buf[*buf_head] = val;
+	*buf_head = (*buf_head + 1) % buf_size;
+	printf("%c", val);
 }
 
-static void handle_pin_change(uint8_t pin)
+void handle_nssu_pin_change()
 {
     static int bit_cnt = -2;
     static uint8_t byte_rcvd = 0;
@@ -42,16 +36,16 @@ static void handle_pin_change(uint8_t pin)
 	if(bit_cnt == -2)
     {
 		// Start the timer to count bits received
-        start_timer();
+        start_nssu_timer();
         bit_cnt++;
         return;
     } 
     
-    int n = get_num_bytes_rcvd();
+    int n = get_nssu_bytes_rcvd();
 	
 	// Make appropriate bit shift basing on actual state of the pin. 
 	// If pin is high then '0' bits have been received or '1' bits otherwise.
-	if(!get_uart_pin_state())
+	if(!get_nssu_pin_state())
 		set_bits(byte_rcvd, n, bit_cnt);
 	
     bit_cnt += n;
@@ -61,13 +55,18 @@ static void handle_pin_change(uint8_t pin)
 	// This situation is fatal, because it could cause desynchronization of algorithm.
     if(bit_cnt >= frame_len)
     {
-        push_byte(byte_rcvd, (uint8_t* ) uart_rcv_buf_head);
+		push_byte_to_circ_buf(byte_rcvd, uart_rcv_buf, &uart_rcv_buf_head, UART_RCV_BUF_SIZE);
         bit_cnt = -2;
         byte_rcvd = 0;
-        stop_timer();
+        stop_nssu_timer();
     } else
 	{
 		// If not all bits have been received then reset the timer.
-        reset_timer();
+        reset_nssu_timer();
 	}
+}
+
+void handle_nssu_tim_overflow()
+{
+	nssu_bytes_rcvd++;
 }

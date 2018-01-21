@@ -1,6 +1,9 @@
-#ifndef UART_H
-#define UART_H
+#ifndef NSS_UART_H
+#define NSS_UART_H
 
-void init_not_so_soft_uart();
+extern volatile unsigned int nssu_bytes_rcvd;
 
-#endif /* UART_H */
+void handle_nssu_pin_change();
+void handle_nssu_tim_overflow();
+
+#endif /* NSS_UART_H */
