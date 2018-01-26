@@ -23,6 +23,7 @@ extern int get_nssu_bits_rcvd();
 static void push_byte_to_circ_buf(uint8_t val, volatile uint8_t *buf, volatile unsigned int *head, size_t size);
 static void push_byte_to_rx_buf(uint8_t val);
 
+static uint8_t pop_byte_from_circ_buf(volatile uint8_t *buf, volatile unsigned int *tail, size_t size);
 
 void handle_nssu_rx_pin_change()
 {
@@ -77,6 +78,15 @@ static void push_byte_to_circ_buf(uint8_t val, volatile uint8_t *buf, volatile u
 static void push_byte_to_rx_buf(uint8_t val)
 {
 	push_byte_to_circ_buf(val, uart_rx_buf, &uart_rx_buf_head, UART_RX_BUF_SIZE);
+}
+
+static uint8_t pop_byte_from_circ_buf(volatile uint8_t *buf, volatile unsigned int *tail, size_t size)
+{
+	unsigned int t = *tail;
+	uint8_t res = buf[t];
+	t = ( t + 1 ) % size;
+	*tail = t;
+	return res;
 }
 
 }
