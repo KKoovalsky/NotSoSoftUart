@@ -143,6 +143,11 @@ static uint8_t pop_byte_from_circ_buf(volatile uint8_t *buf, volatile unsigned i
 	return res;
 }
 
+uint8_t pop_byte_from_rx_buf()
+{
+	return pop_byte_from_circ_buf(uart_rx_buf, &uart_rx_buf_tail, UART_RX_BUF_SIZE);
+}
+
 static uint8_t pop_byte_from_tx_buf()
 {
 	return pop_byte_from_circ_buf(uart_tx_buf, &uart_tx_buf_tail, UART_TX_BUF_SIZE);
