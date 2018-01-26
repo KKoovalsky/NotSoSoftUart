@@ -129,6 +129,11 @@ static void push_byte_to_rx_buf(uint8_t val)
 	push_byte_to_circ_buf(val, uart_rx_buf, &uart_rx_buf_head, UART_RX_BUF_SIZE);
 }
 
+void push_byte_to_tx_buf(uint8_t val)
+{
+	push_byte_to_circ_buf(val, uart_tx_buf, &uart_tx_buf_head, UART_TX_BUF_SIZE);
+}
+
 static uint8_t pop_byte_from_circ_buf(volatile uint8_t *buf, volatile unsigned int *tail, size_t size)
 {
 	unsigned int t = *tail;
