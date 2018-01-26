@@ -1,7 +1,6 @@
 #include "nss_uart.h"
 #include <stdio.h>
 #include <stdbool.h>
-#include <inttypes.h>
 
 #define set_bits(byte, num, pos)		byte |= ( ( 1 << num ) - 1 ) << pos
 
@@ -12,7 +11,7 @@ const int frame_len = 8;
 static volatile uint8_t uart_rx_buf[UART_RX_BUF_SIZE];
 static volatile unsigned int uart_rx_buf_head, uart_rx_buf_tail;
 
-volatile unsigned int nssu_bytes_rcvd = 0;
+static volatile unsigned int nssu_bits_rcvd = 0;
 
 extern void init_not_so_soft_uart();
 extern void start_nssu_rx_timer();
@@ -66,7 +65,7 @@ void handle_nssu_rx_pin_change()
 
 void handle_nssu_rx_tim_overflow()
 {
-	nssu_bytes_rcvd++;
+	nssu_bits_rcvd++;
 static void push_byte_to_circ_buf(uint8_t val, volatile uint8_t *buf, volatile unsigned int *head, size_t size)
 {
 	unsigned int h = *head;

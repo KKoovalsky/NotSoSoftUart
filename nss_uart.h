@@ -2,7 +2,6 @@
 #define NSS_UART_H
 
 #include <inttypes.h>
-extern volatile unsigned int nssu_bytes_rcvd;
 
 // Should be called within on edge detected ISR for RX pin
 void handle_nssu_rx_pin_change();
