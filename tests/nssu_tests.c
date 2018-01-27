@@ -52,17 +52,17 @@ void disable_tx_tim_isr()
 	all_data_sent = true;
 }
 
-MU_TEST(nssu_self_test)
+
+static void self_test(const uint8_t *tbl, unsigned int tbl_len, bool is_binary)
 {
-	// The test data which will be virtually sent
-	const char test_tbl[] = "ACJQUORPQKSALQ&!74108$@*(";
-	const unsigned int test_tbl_len = array_len(test_tbl) - 1;
-	// An array which will hold the received data
-	char results[test_tbl_len + 1];
+	// Remember about null terminating character in non-binary string
+	unsigned int tbl_len_modified = is_binary ? tbl_len : tbl_len - 1;
+	char results[tbl_len];
 
 	// Push the data to the TX buffer
-	for(int i = 0 ; i < test_tbl_len; ++i)
-		push_byte_to_tx_buf(test_tbl[i]);
+	all_data_sent = false;
+	for(int i = 0 ; i < tbl_len_modified ; ++i)
+		push_byte_to_tx_buf(tbl[i]);
 
 	// This variable is used to check if slope occurred
 	unsigned int prev_pin_state = pin_state;
@@ -82,12 +82,24 @@ MU_TEST(nssu_self_test)
 	}
 	
 	// Pop the received data
-	for(int i = 0 ; i < test_tbl_len; ++i)
+	for(int i = 0 ; i < tbl_len_modified; ++i)
 		results[i] = pop_byte_from_rx_buf();
-	results[test_tbl_len] = '\0';
 	
-	// Check if the test is successful
-	mu_assert_string_eq(test_tbl, results);
+	// Perform the test
+	if(is_binary)
+		mu_assert_bytearray_eq(tbl, (const uint8_t *) results, tbl_len_modified);
+	else
+	{
+		results[tbl_len_modified] = '\0';
+		mu_assert_string_eq((const char *) tbl, results);
+	}
+}
+
+MU_TEST(nssu_self_test)
+{
+	// The test data which will be virtually sent. Firstly check simple string
+	const char test_tbl[] = "ACJQUORPQKSALQ&!74108$@*(";
+	self_test((const uint8_t *) test_tbl, array_len(test_tbl), false);
 }
 
 MU_TEST_SUITE(nssu_test)
