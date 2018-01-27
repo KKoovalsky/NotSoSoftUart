@@ -36,7 +36,6 @@ void handle_nssu_rx_pin_change()
 {
     static int bit_cnt = -2;
     static uint8_t byte_rcvd = 0;
-
     // -1 indicates that this interrupt handles first slope of start bit
 	if(bit_cnt == -2)
     {
@@ -44,26 +43,28 @@ void handle_nssu_rx_pin_change()
         start_nssu_rx_timer();
         bit_cnt++;
         return;
-    } 
-    
+    }
     int n = get_nssu_bits_rcvd();
-	
 	// Make appropriate bit shift basing on actual state of the pin. 
 	// If pin is high then '0' bits have been received or '1' bits otherwise.
 	if(!get_nssu_rx_pin_state())
 		set_bits(byte_rcvd, n, bit_cnt);
-	
     bit_cnt += n;
-
 	// If all bits have been received reset the algorithm and push the received byte to the buffer.
 	// This implementation does not handle error when the bit counter is bigger than length of baud.
 	// This situation is fatal, because it could cause desynchronization of algorithm.
     if(bit_cnt >= frame_len)
-    {
+    {	
+		// Save the bit counter to test later how many bits were received
+		int prev_bit_cnt = bit_cnt;
 		push_byte_to_rx_buf(byte_rcvd);
         bit_cnt = -2;
         byte_rcvd = 0;
         stop_nssu_rx_timer();
+		// When last bit was '1' there was no slope on stop bit, so this final slope is also the slope which
+		// is the beginning of a start bit. The beginning of start bit should be handled then.
+		if(prev_bit_cnt > frame_len)
+			 handle_nssu_rx_pin_change();
     } else
 	{
 		// If not all bits have been received then reset the timer.
