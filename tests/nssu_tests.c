@@ -100,6 +100,10 @@ MU_TEST(nssu_self_test)
 	// The test data which will be virtually sent. Firstly check simple string
 	const char test_tbl[] = "ACJQUORPQKSALQ&!74108$@*(";
 	self_test((const uint8_t *) test_tbl, array_len(test_tbl), false);
+
+	// Perform test for binary data
+	const uint8_t bin_data[] = { 0x00, 0xFF, 0xE0, 0x89, 0x01, 0x02, 0x5F };
+	self_test(bin_data, array_len(bin_data), true);
 }
 
 MU_TEST_SUITE(nssu_test)
