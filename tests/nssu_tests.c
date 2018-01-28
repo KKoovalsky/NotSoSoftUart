@@ -99,6 +99,25 @@ static void self_test(const uint8_t *tbl, unsigned int tbl_len, bool is_binary)
 	}
 }
 
+static void self_test_go_idle()
+{
+	// There will be only one '0' (a start bit)
+	push_byte_to_tx_buf(0xFF);
+	
+	virt_conn_tx_with_rx_and_send_data();
+
+	// Go to idle mode for a while 
+	state_duration += 100;
+
+	// Transmit an ASCII character because of slope before stop bit
+	push_byte_to_tx_buf('A');
+
+	virt_conn_tx_with_rx_and_send_data();
+
+	mu_assert(0xFF == pop_byte_from_rx_buf(), "IDLE 0xFF byte check");
+	mu_assert('A' == pop_byte_from_rx_buf(), "IDLE 'A' byte check");
+}
+
 MU_TEST(nssu_self_test)
 {
 	// The test data which will be virtually sent. Firstly check simple string
@@ -108,6 +127,8 @@ MU_TEST(nssu_self_test)
 	// Perform test for binary data
 	const uint8_t bin_data[] = { 0x00, 0xFF, 0xE0, 0x89, 0x01, 0x02, 0x5F };
 	self_test(bin_data, array_len(bin_data), true);
+
+	self_test_go_idle();
 }
 
 MU_TEST_SUITE(nssu_test)
