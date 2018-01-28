@@ -52,20 +52,11 @@ void disable_tx_tim_isr()
 	all_data_sent = true;
 }
 
-
-static void self_test(const uint8_t *tbl, unsigned int tbl_len, bool is_binary)
+static void virt_conn_tx_with_rx_and_send_data()
 {
-	// Remember about null terminating character in non-binary string
-	unsigned int tbl_len_modified = is_binary ? tbl_len : tbl_len - 1;
-	char results[tbl_len];
-
-	// Push the data to the TX buffer
-	all_data_sent = false;
-	for(int i = 0 ; i < tbl_len_modified ; ++i)
-		push_byte_to_tx_buf(tbl[i]);
-
 	// This variable is used to check if slope occurred
 	unsigned int prev_pin_state = pin_state;
+	all_data_sent = false;
 	// Lets virtually connect TX pin with RX pin, so perform a self-test
 	while(!all_data_sent)
 	{
@@ -80,6 +71,19 @@ static void self_test(const uint8_t *tbl, unsigned int tbl_len, bool is_binary)
 		}
 		state_duration ++;
 	}
+}
+
+static void self_test(const uint8_t *tbl, unsigned int tbl_len, bool is_binary)
+{
+	// Remember about null terminating character in non-binary string
+	unsigned int tbl_len_modified = is_binary ? tbl_len : tbl_len - 1;
+	char results[tbl_len];
+
+	// Push the data to the TX buffer
+	for(int i = 0 ; i < tbl_len_modified ; ++i)
+		push_byte_to_tx_buf(tbl[i]);
+
+	virt_conn_tx_with_rx_and_send_data();
 	
 	// Pop the received data
 	for(int i = 0 ; i < tbl_len_modified; ++i)
