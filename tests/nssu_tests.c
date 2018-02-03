@@ -46,6 +46,10 @@ void set_nssu_tx_pin_state(int state)
 	pin_state = state;
 }
 
+void enable_tx_tim_isr()
+{
+}
+
 void disable_tx_tim_isr()
 {
 	// Will stop the inner while loop within the test
