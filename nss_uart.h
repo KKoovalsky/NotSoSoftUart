@@ -18,4 +18,7 @@ void push_byte_to_tx_buf(uint8_t val);
 // Function used to get a byte from RX buffer. This function doesn't check whether new data is available
 uint8_t pop_byte_from_rx_buf();
 
+// Setter for the function which will be called when a byte has been received
+void register_nssu_byte_received_callback(void (*callback_fn)(void));
+
 #endif /* NSS_UART_H */
