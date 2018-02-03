@@ -24,6 +24,7 @@ extern void reset_nssu_rx_timer();
 extern int get_nssu_rx_pin_state();
 extern int get_nssu_bits_rcvd();
 extern void set_nssu_tx_pin_state(int state);
+extern void enable_tx_tim_isr();
 extern void disable_tx_tim_isr();
 
 static void push_byte_to_circ_buf(uint8_t val, volatile uint8_t *buf, volatile unsigned int *head, size_t size);
@@ -33,6 +34,16 @@ static uint8_t pop_byte_from_circ_buf(volatile uint8_t *buf, volatile unsigned i
 static uint8_t pop_byte_from_tx_buf();
 
 static void (*on_nssu_byte_received)(void) = NULL;
+
+void transmit_data(uint8_t *data, size_t len)
+{
+	// Push the data to the TX buffer
+	for(size_t i = 0 ; i < len ; ++i)
+		push_byte_to_tx_buf(data[i]);
+
+	// Start transmission
+	enable_tx_tim_isr();
+}
 
 void register_nssu_byte_received_callback(void (*callback_fn)(void))
 {
