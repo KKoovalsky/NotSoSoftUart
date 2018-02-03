@@ -15,8 +15,6 @@ static volatile unsigned int uart_rx_buf_head, uart_rx_buf_tail;
 static volatile uint8_t uart_tx_buf[UART_TX_BUF_SIZE];
 static volatile unsigned int uart_tx_buf_head, uart_tx_buf_tail;
 
-static volatile unsigned int nssu_bits_rcvd = 0;
-
 extern void init_not_so_soft_uart();
 extern void start_nssu_rx_timer();
 extern void stop_nssu_rx_timer();
@@ -90,11 +88,6 @@ void handle_nssu_rx_pin_change()
 		// If not all bits have been received then reset the timer.
         reset_nssu_rx_timer();
 	}
-}
-
-void handle_nssu_rx_tim_overflow()
-{
-	nssu_bits_rcvd++;
 }
 
 void handle_nssu_tx_tim_overflow()
