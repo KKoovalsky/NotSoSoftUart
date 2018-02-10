@@ -16,8 +16,8 @@ non-typical baud rates are also supported.
 
 ## What do You need to run it
 
-To run NSSU You need a processor which has two timers (one for TX and the second one for RX) and GPIO capable of
-handling falling/raising edge interrupts.
+To run NSSU You need a processor which has at least two timers (one for TX and the second one for RX) and GPIO 
+capable of handling falling/raising edge interrupts.
 
 ## How does it work
 
