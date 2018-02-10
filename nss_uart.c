@@ -15,15 +15,15 @@ static volatile unsigned int uart_rx_buf_head, uart_rx_buf_tail;
 static volatile uint8_t uart_tx_buf[UART_TX_BUF_SIZE];
 static volatile unsigned int uart_tx_buf_head, uart_tx_buf_tail;
 
-extern void init_not_so_soft_uart();
-extern void start_nssu_rx_timer();
-extern void stop_nssu_rx_timer();
-extern void reset_nssu_rx_timer();
-extern int get_nssu_rx_pin_state();
-extern int get_nssu_bits_rcvd();
-extern void set_nssu_tx_pin_state(int state);
-extern void enable_tx_tim_isr();
-extern void disable_tx_tim_isr();
+extern void nssu_init();
+extern void nssu_rx_timer_start();
+extern void nssu_rx_timer_stop();
+extern void nssu_rx_timer_restart();
+extern int nssu_get_rx_pin_state();
+extern int nssu_get_num_bits_rcvd();
+extern void nssu_set_tx_pin_state(int state);
+extern void nssu_tx_tim_isr_enable();
+extern void nssu_tx_tim_isr_disable();
 
 static void push_byte_to_circ_buf(uint8_t val, volatile uint8_t *buf, volatile unsigned int *head, size_t size);
 static void push_byte_to_tx_buf(uint8_t val);
@@ -41,14 +41,14 @@ int nssu_get_num_bytes_rcvd()
 		return head + UART_RX_BUF_SIZE - tail;
 }
 
-void transmit_data(uint8_t *data, size_t len)
+void nssu_transmit_data(uint8_t *data, size_t len)
 {
 	// Push the data to the TX buffer
 	for(size_t i = 0 ; i < len ; ++i)
 		push_byte_to_tx_buf(data[i]);
 
 	// Start transmission
-	enable_tx_tim_isr();
+	nssu_tx_tim_isr_enable();
 }
 
 void handle_nssu_rx_pin_change()
@@ -59,14 +59,14 @@ void handle_nssu_rx_pin_change()
 	if(bit_cnt == -2)
     {
 		// Start the timer to count bits received
-        start_nssu_rx_timer();
+        nssu_rx_timer_start();
         bit_cnt++;
         return;
     }
-    int n = get_nssu_bits_rcvd();
+    int n = nssu_get_num_bits_rcvd();
 	// Make appropriate bit shift basing on actual state of the pin. 
 	// If pin is high then '0' bits have been received or '1' bits otherwise.
-	if(!get_nssu_rx_pin_state())
+	if(!nssu_get_rx_pin_state())
 		set_bits(byte_rcvd, n, bit_cnt);
     bit_cnt += n;
 	// If all bits have been received reset the algorithm and push the received byte to the buffer.
@@ -79,7 +79,7 @@ void handle_nssu_rx_pin_change()
 		push_byte_to_rx_buf(byte_rcvd);
         bit_cnt = -2;
         byte_rcvd = 0;
-        stop_nssu_rx_timer();
+        nssu_rx_timer_stop();
 		// When last bit was '1' there was no slope on stop bit, so this final slope is also the slope which
 		// is the beginning of a start bit. The beginning of start bit should be handled then.
 		if(prev_bit_cnt > frame_len)
@@ -87,7 +87,7 @@ void handle_nssu_rx_pin_change()
     } else
 	{
 		// If not all bits have been received then reset the timer.
-        reset_nssu_rx_timer();
+        nssu_rx_timer_restart();
 	}
 }
 
@@ -105,11 +105,11 @@ void handle_nssu_tx_tim_overflow()
 			// Get the next byte to be sent
 			byte = pop_byte_from_tx_buf();
 			// Transmit start bit
-			set_nssu_tx_pin_state(0);
+			nssu_set_tx_pin_state(0);
 		}
 		// Disable the interrupt because there are no more bytes to be sent
 		else
-			disable_tx_tim_isr();
+			nssu_tx_tim_isr_disable();
 	}
 	else
 	{
@@ -119,12 +119,12 @@ void handle_nssu_tx_tim_overflow()
 			whole_byte_sent = true;
 			bits_sent = 0;
 			// Transmit stop bit
-			set_nssu_tx_pin_state(1);
+			nssu_set_tx_pin_state(1);
 		}
 		else
 		{
 			// Send a bit of a byte
-			set_nssu_tx_pin_state(byte & 0x01);
+			nssu_set_tx_pin_state(byte & 0x01);
 			byte >>= 1;
 			bits_sent ++;
 		}
@@ -144,7 +144,7 @@ static void push_byte_to_rx_buf(uint8_t val)
 	push_byte_to_circ_buf(val, uart_rx_buf, &uart_rx_buf_head, UART_RX_BUF_SIZE);
 }
 
-void push_byte_to_tx_buf(uint8_t val)
+static void push_byte_to_tx_buf(uint8_t val)
 {
 	push_byte_to_circ_buf(val, uart_tx_buf, &uart_tx_buf_head, UART_TX_BUF_SIZE);
 }
@@ -158,7 +158,7 @@ static uint8_t pop_byte_from_circ_buf(volatile uint8_t *buf, volatile unsigned i
 	return res;
 }
 
-uint8_t pop_byte_from_rx_buf()
+uint8_t nssu_get_rcvd_byte()
 {
 	return pop_byte_from_circ_buf(uart_rx_buf, &uart_rx_buf_tail, UART_RX_BUF_SIZE);
 }

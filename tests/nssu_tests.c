@@ -15,42 +15,42 @@ static bool all_data_sent = false;
 static unsigned int state_duration;
 
 // Those four methods are for use with HW so we can leave them empty
-void init_not_so_soft_uart()
+void nssu_init()
 {
 }
 
-void start_nssu_rx_timer()
+void nssu_rx_timer_start()
 {
 }
 
-void stop_nssu_rx_timer()
+void nssu_rx_timer_stop()
 {
 }
 
-void reset_nssu_rx_timer()
+void nssu_rx_timer_restart()
 {
 }
 
-int get_nssu_rx_pin_state()
+int nssu_get_rx_pin_state()
 {
 	return pin_state;
 }
 
-int get_nssu_bits_rcvd()
+int nssu_get_num_bits_rcvd()
 {
 	return state_duration;
 }
 
-void set_nssu_tx_pin_state(int state)
+void nssu_set_tx_pin_state(int state)
 {
 	pin_state = state;
 }
 
-void enable_tx_tim_isr()
+void nssu_tx_tim_isr_enable()
 {
 }
 
-void disable_tx_tim_isr()
+void nssu_tx_tim_isr_disable()
 {
 	// Will stop the inner while loop within the test
 	all_data_sent = true;

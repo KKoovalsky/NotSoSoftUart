@@ -14,10 +14,9 @@ void handle_nssu_tx_tim_overflow();
 int nssu_get_num_bytes_rcvd();
 
 // Function used to get a byte from RX buffer. This function doesn't check whether new data is available
-uint8_t pop_byte_from_rx_buf();
+uint8_t nssu_get_rcvd_byte();
 
 // Function used to transmit data with NSSU
-void transmit_data(uint8_t *data, size_t len);
-
+void nssu_transmit_data(uint8_t *data, size_t len);
 
 #endif /* NSS_UART_H */
