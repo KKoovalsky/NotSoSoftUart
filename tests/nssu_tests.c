@@ -64,12 +64,12 @@ static void virt_conn_tx_with_rx_and_send_data()
 	// Lets virtually connect TX pin with RX pin, so perform a self-test
 	while(!all_data_sent)
 	{
-		handle_nssu_tx_tim_overflow();
+		nssu_handle_tx_tim_overflow();
 		// Test for slope
 		if(prev_pin_state != pin_state)
 		{
 			// On slope normally this handler is invoked
-			handle_nssu_rx_pin_change();
+			nssu_handle_rx_pin_edge();
 			prev_pin_state = pin_state;
 			state_duration = 0;
 		}

@@ -5,10 +5,10 @@
 #include <stdio.h>
 
 // Should be called within on edge detected ISR for RX pin
-void handle_nssu_rx_pin_change();
+void nssu_handle_rx_pin_edge();
 
 // Should be called within ISR which handles transmitting bytes over UART
-void handle_nssu_tx_tim_overflow();
+void nssu_handle_tx_tim_overflow();
 
 // Function which allows to check whether there are some bytes received with NSSU RX side
 int nssu_get_num_bytes_rcvd();

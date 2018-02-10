@@ -51,7 +51,7 @@ void nssu_transmit_data(uint8_t *data, size_t len)
 	nssu_tx_tim_isr_enable();
 }
 
-void handle_nssu_rx_pin_change()
+void nssu_handle_rx_pin_edge()
 {
     static int bit_cnt = -2;
     static uint8_t byte_rcvd = 0;
@@ -83,7 +83,7 @@ void handle_nssu_rx_pin_change()
 		// When last bit was '1' there was no slope on stop bit, so this final slope is also the slope which
 		// is the beginning of a start bit. The beginning of start bit should be handled then.
 		if(prev_bit_cnt > frame_len)
-			 handle_nssu_rx_pin_change();
+			 nssu_handle_rx_pin_edge();
     } else
 	{
 		// If not all bits have been received then reset the timer.
@@ -91,7 +91,7 @@ void handle_nssu_rx_pin_change()
 	}
 }
 
-void handle_nssu_tx_tim_overflow()
+void nssu_handle_tx_tim_overflow()
 {
 	static bool whole_byte_sent = true; // Indicates if a new byte should be transmitted
 	static unsigned int bits_sent = 0;	// Counter of bits sent
