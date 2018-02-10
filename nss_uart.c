@@ -31,6 +31,14 @@ static void push_byte_to_rx_buf(uint8_t val);
 static uint8_t pop_byte_from_circ_buf(volatile uint8_t *buf, volatile unsigned int *tail, size_t size);
 static uint8_t pop_byte_from_tx_buf();
 
+int nssu_get_num_bytes_rcvd()
+{
+	int tail = uart_rx_buf_tail, head = uart_rx_buf_head;
+	if(tail <= head)
+		return head - tail;
+	else
+		return head + UART_RX_BUF_SIZE - tail;
+}
 
 void transmit_data(uint8_t *data, size_t len)
 {
