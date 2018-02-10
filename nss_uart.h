@@ -12,8 +12,6 @@ void handle_nssu_tx_tim_overflow();
 
 // Function which allows to check whether there are some bytes received with NSSU RX side
 int nssu_get_num_bytes_rcvd();
-// Function used to copy byte to the TX buffer
-void push_byte_to_tx_buf(uint8_t val);
 
 // Function used to get a byte from RX buffer. This function doesn't check whether new data is available
 uint8_t pop_byte_from_rx_buf();

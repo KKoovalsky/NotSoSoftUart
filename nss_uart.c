@@ -26,6 +26,7 @@ extern void enable_tx_tim_isr();
 extern void disable_tx_tim_isr();
 
 static void push_byte_to_circ_buf(uint8_t val, volatile uint8_t *buf, volatile unsigned int *head, size_t size);
+static void push_byte_to_tx_buf(uint8_t val);
 static void push_byte_to_rx_buf(uint8_t val);
 
 static uint8_t pop_byte_from_circ_buf(volatile uint8_t *buf, volatile unsigned int *tail, size_t size);
