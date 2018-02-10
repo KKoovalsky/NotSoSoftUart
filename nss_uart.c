@@ -31,7 +31,6 @@ static void push_byte_to_rx_buf(uint8_t val);
 static uint8_t pop_byte_from_circ_buf(volatile uint8_t *buf, volatile unsigned int *tail, size_t size);
 static uint8_t pop_byte_from_tx_buf();
 
-static void (*on_nssu_byte_received)(void) = NULL;
 
 void transmit_data(uint8_t *data, size_t len)
 {
@@ -41,11 +40,6 @@ void transmit_data(uint8_t *data, size_t len)
 
 	// Start transmission
 	enable_tx_tim_isr();
-}
-
-void register_nssu_byte_received_callback(void (*callback_fn)(void))
-{
-	on_nssu_byte_received = callback_fn;
 }
 
 void handle_nssu_rx_pin_change()
@@ -77,8 +71,6 @@ void handle_nssu_rx_pin_change()
         bit_cnt = -2;
         byte_rcvd = 0;
         stop_nssu_rx_timer();
-		if(on_nssu_byte_received)
-			on_nssu_byte_received();
 		// When last bit was '1' there was no slope on stop bit, so this final slope is also the slope which
 		// is the beginning of a start bit. The beginning of start bit should be handled then.
 		if(prev_bit_cnt > frame_len)

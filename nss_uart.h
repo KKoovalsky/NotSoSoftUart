@@ -19,7 +19,5 @@ uint8_t pop_byte_from_rx_buf();
 // Function used to transmit data with NSSU
 void transmit_data(uint8_t *data, size_t len);
 
-// Setter for the function which will be called when a byte has been received
-void register_nssu_byte_received_callback(void (*callback_fn)(void));
 
 #endif /* NSS_UART_H */
